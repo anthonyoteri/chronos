@@ -41,7 +41,8 @@ def main():
         log.error("Unable to read configuration file %s: %s", options.config, e)
         raise e
 
-    Application()
+    app = Application()
+    app.run()
 
 
 if __name__ == "__main__":

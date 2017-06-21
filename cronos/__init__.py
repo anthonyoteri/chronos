@@ -4,4 +4,3 @@
 __NAME__ = 'Chronos'
 __VERSION__ = '1.0.0'
 __AUTHOR__ = 'Anthony Oteri'
-

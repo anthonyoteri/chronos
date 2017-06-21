@@ -1,7 +1,7 @@
 import sys
 from setuptools import setup, find_packages
 
-from cronos import __NAME__, __VERSION__
+from cronos import __NAME__, __VERSION__, __AUTHOR__
 
 setup_requires = [
     'py2app',
@@ -21,7 +21,7 @@ setup(
     name=__NAME__,
     version=__VERSION__,
     packages=find_packages(),
-    author='Anthony Oteri',
+    author=__AUTHOR__,
     author_email='anthony.oteri@gmail.com',
     description='Multi-project time clock',
     license='BSD',
