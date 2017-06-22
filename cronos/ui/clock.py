@@ -1,12 +1,15 @@
 # Copyright (C) 2017, Anthony Oteri
 # All rights reserved.
 
+from __future__ import absolute_import
+
 import logging
 import time
 import Tkinter as tk
 import ttk
 
 from cronos import event
+from cronos.db import ProjectDao
 from cronos.utils import human_time
 
 
@@ -30,6 +33,7 @@ class Clock(ttk.Frame):
         self.elapsed_time = tk.StringVar()
         self.total_time = tk.StringVar()
 
+        self.project_dao = ProjectDao()
         self.project_list = set()
 
         self._data = {
@@ -39,15 +43,12 @@ class Clock(ttk.Frame):
             'start_time': None,
         }
 
-        self._dirty = True
-
         # TODO Temporary
         self.save()
 
         self.create_widgets()
         event.register(self.update)
 
-        self.update()
         self.poll()
 
     def create_widgets(self):
@@ -92,23 +93,33 @@ class Clock(ttk.Frame):
         self.stop_button.grid(row=40, column=18, columnspan=6, sticky='e')
 
 
+    @event.notify
     def save(self):
         log.debug("save: %r", self)
-        if self._dirty:
-            self._saved = self._data
-            self._dirty = False
-            event.notify()
+        self._saved = self._data
 
     def load(self):
         log.debug('load: %r', self)
         self._data = self._saved
 
+        self.project_list.clear()
+        for row in self.project_dao.list():
+            try:
+                self.project_list.add(row['name'])
+            except KeyError:
+                continue
+
     def update(self):
         log.debug('update: %r', self)
         self.load()
 
-        self.project_list = set(('foo', 'bar', 'baz', 'bam'))
         self.box['values'] = sorted(self.project_list)
+
+        if self.active_project.get() not in self.project_list:
+            self.active_project.set('')
+
+        if not self.active_project.get() and self.project_list:
+            self.active_project.set([v for v in self.project_list][0])
 
         if self.running:
             self.start_button['state'] = tk.DISABLED
@@ -118,8 +129,6 @@ class Clock(ttk.Frame):
             self.start_button['state'] = tk.NORMAL
             self.stop_button['state'] = tk.DISABLED
             self.box['state'] = tk.NORMAL
-
-        self.save()
 
     def poll(self):
         now = time.time()
@@ -147,9 +156,7 @@ class Clock(ttk.Frame):
 
         if not self.running:
             self._data['start_time'] = time.time()
-            self._dirty = True
-
-        self.update()
+            self.save()
 
     def on_stop(self):
         log.debug('stop: %r', self)
@@ -157,9 +164,7 @@ class Clock(ttk.Frame):
         if self.running:
             self._data['total'] += (time.time() - self._data['start_time'])
             self._data['start_time'] = None
-            self._dirty = True
-
-        self.update()
+            self.save()
 
     def __repr__(self):
         return 'Clock[project=%s, elapsed=%s, total=%s]' % (

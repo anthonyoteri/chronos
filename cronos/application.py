@@ -1,6 +1,8 @@
 # Copyright (C) 2017, Anthony Oteri
 # All rights reserved.
 
+from __future__ import absolute_import
+
 import logging
 import Tkinter as tk
 import ttk
@@ -52,7 +54,19 @@ class Application(object):
                    columnspan=7, sticky='news')
 
         today = cronos.ui.Today(left)
-        left.add(today, text='Today')
+        left.add(today, text='Day')
+
+        week = ttk.Frame(left)
+        left.add(week, text='Week')
+
+        month = ttk.Frame(left)
+        left.add(month, text='Month')
+
+        ledger = ttk.Frame(left)
+        left.add(ledger, text="Ledger")
+
+        console_log = cronos.ui.Log(left)
+        left.add(console_log, text="Log")
 
         time_clock = cronos.ui.Clock(right)
         right.add(time_clock, text="Time")

@@ -1,14 +1,18 @@
 # Copyright (C) 2017, Anthony Oteri
 # All rights reserved.
 
+from __future__ import absolute_import
+
 import argparse
 import json
 import logging
 
 import yaml
 
-from cronos.application import Application
+import cronos.logging
 
+from cronos.application import Application
+from cronos.db import connect
 
 log = logging.getLogger('chronos')
 
@@ -31,7 +35,7 @@ def main():
                         default='~/.cronos/config.yml')
 
     options = parser.parse_args()
-    logging.basicConfig(level=_log_level(options.loglevel))
+    cronos.logging.init(level=_log_level(options.loglevel))
 
     try:
         with open(options.config, 'r') as config_file:
@@ -41,10 +45,15 @@ def main():
         log.error("Unable to read configuration file %s: %s", options.config, e)
         raise e
 
+    connect(config)
+
     app = Application()
     app.run()
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        raise SystemExit(0)
 

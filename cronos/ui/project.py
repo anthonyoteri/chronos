@@ -1,13 +1,15 @@
 # Copyright (C) 2017, Anthony Oteri.
 # All rights reserved.
 
+from __future__ import absolute_import
+
 import logging
 import Tkinter as tk
 import ttk
 import tkMessageBox
 
 from cronos import event
-
+from cronos.db import ProjectDao
 
 log = logging.getLogger(__name__)
 
@@ -29,11 +31,10 @@ class Project(ttk.Frame):
         self.selected = tk.StringVar()
 
         self.create_widgets()
-        self._dirty = False
+
+        self.project_dao = ProjectDao()
 
         event.register(self.update)
-
-        self.update()
         self.poll()
 
     def create_widgets(self):
@@ -67,8 +68,7 @@ class Project(ttk.Frame):
             log.debug("Creating new project %s", new_project)
             self.project_list.add(new_project)
             self.entry.set('')
-            self._dirty = True
-            self.update()
+            self.save()
 
     def on_minus(self):
         log.debug("on_minus: %r", self)
@@ -87,24 +87,40 @@ class Project(ttk.Frame):
                 log.warning("Failed to remove project %s", target)
                 return
             else:
-                self._dirty = True
                 self.selected.set('')
-                self.update()
+                self.save()
 
     def on_selection(self, selection):
         log.debug("on_selection: selection=%s %r", selection, self)
         self.selected.set(selection)
-        self._dirty = True
-        self.update()
+        self.save()
 
     def load(self):
         log.debug("load: %r", self)
+        self.project_list.clear()
+        for row in self.project_dao.list():
+            try:
+                self.project_list.add(row['name'])
+            except KeyError:
+                continue
 
+    @event.notify
     def save(self):
         log.debug("save: %r", self)
-        if self._dirty:
-            self._dirty = False
-            event.notify()
+
+        existing = set()
+        for row in self.project_dao.list():
+            existing.add(row['name'])
+
+        to_add = self.project_list - existing
+        to_remove = existing - self.project_list
+
+        for p in to_add:
+            self.project_dao.create(name=p)
+
+        for p in to_remove:
+            self.project_dao.delete(name=p)
+
 
     def update(self):
         log.debug("update: %r", self)
@@ -122,8 +138,6 @@ class Project(ttk.Frame):
             self.minus_button['state'] = tk.NORMAL
         else:
             self.minus_button['state'] = tk.DISABLED
-
-        self.save()
 
     def poll(self):
         active = self.box.get(tk.ACTIVE)

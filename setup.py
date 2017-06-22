@@ -10,6 +10,7 @@ setup_requires = [
 
 install_requires = [
     'PyYAML',
+    'dataset',
 ]
 
 tests_require = [
