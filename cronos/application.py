@@ -62,7 +62,7 @@ class Application(object):
         month = ttk.Frame(left)
         left.add(month, text='Month')
 
-        ledger = ttk.Frame(left)
+        ledger = cronos.ui.Ledger(left)
         left.add(ledger, text="Ledger")
 
         console_log = cronos.ui.Log(left)

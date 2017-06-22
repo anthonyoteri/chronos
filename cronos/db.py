@@ -3,7 +3,11 @@
 
 from __future__ import absolute_import
 
+import collections
 import logging
+import time
+
+from datetime import datetime, timedelta
 
 import dataset
 
@@ -69,4 +73,22 @@ class RecordService(object):
     def list(self):
         with conn as tx:
             return tx['record'].all()
+
+    def by_day(self):
+        with conn as tx:
+
+            data = collections.defaultdict(list)
+            for row in tx['record'].all():
+                ts = datetime.fromtimestamp(row['start'])
+                now = int(time.time())
+                elapsed_time = row['elapsed'] or now - row['start']
+                data[ts.date().isoformat()].append({
+                    'project': row['project'],
+                    'start_ts': row['start'],
+                    'stop_ts': row['start'] + elapsed_time,
+                    'elapsed': elapsed_time,
+                })
+
+            return data
+
 
