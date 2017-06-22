@@ -8,6 +8,7 @@ import time
 import Tkinter as tk
 
 from cronos import event
+from cronos.db import RecordService
 from cronos.ui.console import Console
 from cronos.utils import human_time
 
@@ -20,6 +21,8 @@ class Today(Console):
     def __init__(self, master):
         super(Today, self).__init__(master)
         self.data = {}
+
+        self.record_service = RecordService()
 
         event.register(self.update)
 
@@ -38,5 +41,7 @@ class Today(Console):
         self.text = ""
         for k, v in sorted(self.data.iteritems()):
             self.text += "%s: %s\n" % (k, human_time(v))
+
+        self.text = "\n".join([str(x) for x in self.record_service.list()])
 
         self._update()

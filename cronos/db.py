@@ -10,7 +10,7 @@ import dataset
 
 log = logging.getLogger(__name__)
 
-_db = None
+conn = None
 
 
 def connect(config=None):
@@ -23,34 +23,50 @@ def connect(config=None):
 
     log.debug("found database url %s", db_url)
 
-    global _db
-    _db = dataset.connect(db_url)
+    global conn
+    conn = dataset.connect(db_url)
 
-    log.debug("db is %r", _db)
+    log.debug("db is %r", conn)
 
-    return _db
+    return conn
 
 
-class ProjectDao(object):
 
-    def __init__(self):
-        assert _db is not None
-        self.db = _db
+class ProjectService(object):
 
-    def create(self, **project):
-        log.debug("create: %s", project)
+    def create(self, name):
+        log.debug("create: %s", name)
 
-        with self.db as tx:
-            tx['project'].insert(project)
+        with conn as tx:
+            tx['project'].insert({'name': name})
 
     def list(self):
-        with self.db as tx:
+        with conn as tx:
             return tx['project'].all()
 
-    def get(self, **filter):
-        with self.db as tx:
-            return tx['project'].find(**filter)
-
     def delete(self, **filter):
-        with self.db as tx:
+        with conn as tx:
             tx['project'].delete(**filter)
+
+
+class RecordService(object):
+
+    def start(self, project, ts):
+        log.debug("start: project=%s timestamp=%s", project, ts)
+
+        with conn as tx:
+            tx['record'].insert(dict(project=project, start=ts, elapsed=0))
+
+    def stop(self, project, start_ts, stop_ts):
+        log.debug("stop: project=%s start_ts=%s stop_ts=%s", project, start_ts,
+                  stop_ts)
+
+        with conn as tx:
+            tx['record'].update(
+                dict(project=project, start=start_ts,
+                     elapsed=stop_ts - start_ts), ['project', 'start'])
+
+    def list(self):
+        with conn as tx:
+            return tx['record'].all()
+

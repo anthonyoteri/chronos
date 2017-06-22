@@ -9,7 +9,7 @@ import Tkinter as tk
 import ttk
 
 from cronos import event
-from cronos.db import ProjectDao
+from cronos.db import ProjectService, RecordService
 from cronos.utils import human_time
 
 
@@ -33,7 +33,9 @@ class Clock(ttk.Frame):
         self.elapsed_time = tk.StringVar()
         self.total_time = tk.StringVar()
 
-        self.project_dao = ProjectDao()
+        self.project_service = ProjectService()
+        self.record_service = RecordService()
+
         self.project_list = set()
 
         self._data = {
@@ -103,7 +105,7 @@ class Clock(ttk.Frame):
         self._data = self._saved
 
         self.project_list.clear()
-        for row in self.project_dao.list():
+        for row in self.project_service.list():
             try:
                 self.project_list.add(row['name'])
             except KeyError:
@@ -156,14 +158,26 @@ class Clock(ttk.Frame):
 
         if not self.running:
             self._data['start_time'] = time.time()
+            self.record_service.start(
+                project=self.active_project.get(),
+                ts=int(time.time()))
+
             self.save()
 
     def on_stop(self):
         log.debug('stop: %r', self)
 
         if self.running:
+            self.record_service.stop(
+                project=self.active_project.get(),
+                start_ts = int(self._data['start_time']),
+                stop_ts = int(time.time()),
+            )
+
+
             self._data['total'] += (time.time() - self._data['start_time'])
             self._data['start_time'] = None
+
             self.save()
 
     def __repr__(self):

@@ -9,7 +9,7 @@ import ttk
 import tkMessageBox
 
 from cronos import event
-from cronos.db import ProjectDao
+from cronos.db import ProjectService
 
 log = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class Project(ttk.Frame):
 
         self.create_widgets()
 
-        self.project_dao = ProjectDao()
+        self.project_service = ProjectService()
 
         event.register(self.update)
         self.poll()
@@ -66,7 +66,7 @@ class Project(ttk.Frame):
         new_project = self.entry.get()
         if new_project not in self.project_list:
             log.debug("Creating new project %s", new_project)
-            self.project_list.add(new_project)
+            self.project_service.create(name=new_project)
             self.entry.set('')
             self.save()
 
@@ -82,7 +82,7 @@ class Project(ttk.Frame):
                 log.debug("Cancelled project deletion for %s", target)
                 return
             try:
-                self.project_list.remove(target)
+                self.project_service.delete(name=target)
             except KeyError:
                 log.warning("Failed to remove project %s", target)
                 return
@@ -98,7 +98,7 @@ class Project(ttk.Frame):
     def load(self):
         log.debug("load: %r", self)
         self.project_list.clear()
-        for row in self.project_dao.list():
+        for row in self.project_service.list():
             try:
                 self.project_list.add(row['name'])
             except KeyError:
@@ -107,20 +107,6 @@ class Project(ttk.Frame):
     @event.notify
     def save(self):
         log.debug("save: %r", self)
-
-        existing = set()
-        for row in self.project_dao.list():
-            existing.add(row['name'])
-
-        to_add = self.project_list - existing
-        to_remove = existing - self.project_list
-
-        for p in to_add:
-            self.project_dao.create(name=p)
-
-        for p in to_remove:
-            self.project_dao.delete(name=p)
-
 
     def update(self):
         log.debug("update: %r", self)
