@@ -56,10 +56,10 @@ class Application(object):
         today = cronos.ui.Today(left)
         left.add(today, text='Day')
 
-        week = ttk.Frame(left)
+        week = cronos.ui.Week(left)
         left.add(week, text='Week')
 
-        month = ttk.Frame(left)
+        month = cronos.ui.Month(left)
         left.add(month, text='Month')
 
         ledger = cronos.ui.Ledger(left)

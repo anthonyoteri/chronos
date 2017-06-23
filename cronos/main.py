@@ -47,6 +47,10 @@ def main():
 
     connect(config)
 
+    # TODO: Remove me
+#    from cronos.db import insert_fake_records
+#    insert_fake_records()
+
     app = Application()
     app.run()
 

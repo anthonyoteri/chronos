@@ -18,40 +18,28 @@ log = logging.getLogger(__name__)
 
 class Clock(ttk.Frame):
 
-    TITLE = "Time Clock"
     STATUS_RUNNING = "Running"
     STATUS_STOPPED = "Stopped"
     POLLING_INTERVAL_MS = 250
-    ROUND_TOTAL_TO_SECS = 15 * 60
-    ROUND_ELAPSED_TO_SECS = 1
 
     def __init__(self, master):
         ttk.Frame.__init__(self, master)
 
+        self.active_project_start_ts = None
         self.active_project = tk.StringVar()
         self.clock_status = tk.StringVar()
         self.elapsed_time = tk.StringVar()
-        self.total_time = tk.StringVar()
 
         self.project_service = ProjectService()
         self.record_service = RecordService()
 
         self.project_list = set()
 
-        self._data = {
-            'active_project': 'foobar',
-            'running': False,
-            'total': 0,
-            'start_time': None,
-        }
-
-        # TODO Temporary
-        self.save()
-
         self.create_widgets()
         event.register(self.update)
 
         self.poll()
+        self.on_startup()
 
     def create_widgets(self):
         for row in xrange(40):
@@ -74,11 +62,6 @@ class Clock(ttk.Frame):
         ttk.Label(self, textvariable=self.elapsed_time).grid(
             row=2, column=14, columnspan=10, sticky='w')
 
-        ttk.Label(self, text='Total Time').grid(
-            row=3, column=0, columnspan=8, sticky='w')
-        ttk.Label(self, textvariable=self.total_time).grid(
-            row=3, column=14, columnspan=10, sticky='w')
-
         ttk.Label(self, text="Select Project").grid(
             row=38, column=0, columnspan=24, sticky='w')
 
@@ -96,13 +79,16 @@ class Clock(ttk.Frame):
 
 
     @event.notify
-    def save(self):
-        log.debug("save: %r", self)
-        self._saved = self._data
+    def on_startup(self):
+        last_ongoing = self.record_service.ongoing()
+        if last_ongoing is not None:
+            log.debug("Found existing record for project %s",
+                      last_ongoing['project'])
+            self.active_project.set(last_ongoing['project'])
+            self.active_project_start_ts = last_ongoing['start']
 
     def load(self):
         log.debug('load: %r', self)
-        self._data = self._saved
 
         self.project_list.clear()
         for row in self.project_service.list():
@@ -117,10 +103,12 @@ class Clock(ttk.Frame):
 
         self.box['values'] = sorted(self.project_list)
 
-        if self.active_project.get() not in self.project_list:
+        active_project = self.active_project.get()
+        if active_project not in self.project_list:
             self.active_project.set('')
+            active_project = None
 
-        if not self.active_project.get() and self.project_list:
+        if not active_project and self.project_list:
             self.active_project.set([v for v in self.project_list][0])
 
         if self.running:
@@ -136,12 +124,8 @@ class Clock(ttk.Frame):
         now = time.time()
 
         if self.running:
-            elapsed = int(time.time()) - self._data['start_time']
-            self.elapsed_time.set(human_time(elapsed,
-                                             Clock.ROUND_ELAPSED_TO_SECS))
-
-            total = self._data['total'] + elapsed
-            self.total_time.set(human_time(total, Clock.ROUND_TOTAL_TO_SECS))
+            elapsed = int(time.time()) - self.active_project_start_ts
+            self.elapsed_time.set(human_time(elapsed, 0))
             self.clock_status.set(Clock.STATUS_RUNNING)
         else:
             self.elapsed_time.set('')
@@ -151,38 +135,36 @@ class Clock(ttk.Frame):
 
     @property
     def running(self):
-        return self._data['start_time'] is not None
+        return (
+            self.active_project.get()
+            and self.active_project_start_ts is not None)
 
+    @event.notify
     def on_start(self):
         log.debug('start: %r', self)
 
         if not self.running:
-            self._data['start_time'] = time.time()
+            self.active_project_start_ts = int(time.time())
             self.record_service.start(
                 project=self.active_project.get(),
-                ts=int(time.time()))
+                ts=self.active_project_start_ts)
 
-            self.save()
-
+    @event.notify
     def on_stop(self):
         log.debug('stop: %r', self)
 
         if self.running:
             self.record_service.stop(
                 project=self.active_project.get(),
-                start_ts = int(self._data['start_time']),
+                start_ts = self.active_project_start_ts,
                 stop_ts = int(time.time()),
             )
-
-
-            self._data['total'] += (time.time() - self._data['start_time'])
-            self._data['start_time'] = None
-
-            self.save()
+            self.active_project_start_ts = None
 
     def __repr__(self):
-        return 'Clock[project=%s, elapsed=%s, total=%s]' % (
-            self.active_project.get(), self.elapsed_time.get(),
-            self.total_time.get()
+        return 'Clock[project=%s, start_ts=%s, elapsed=%s]' % (
+            self.active_project.get(),
+            self.active_project_start_ts,
+            self.elapsed_time.get(),
         )
 

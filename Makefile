@@ -20,7 +20,7 @@ env:
 	touch env
 
 run: env
-	env/bin/python -m cronos.main --loglevel debug --config sample_config.yml
+	env/bin/python -m cronos.main --loglevel debug --config config.yml
 
 clean:
 	rm -rf env build dist *.egg-info .eggs

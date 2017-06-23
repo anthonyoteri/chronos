@@ -1,4 +1,4 @@
-# Copyright (C) 2017, Anthony Oteri
+# Copyright (C) 2018, Anthony Oteri
 # All rights reserved.
 
 from __future__ import absolute_import
@@ -42,24 +42,15 @@ class Ledger(Console):
     def _make_report(self):
         fmt = "  %-25s | %8s | %8s | %s"
 
-        for day, entries in self.data.iteritems():
+        for day, entries in sorted(self.data.iteritems()):
             yield day
             yield fmt % ("PROJECT", "START", "STOP", "ELAPSED")
 
             for entry in entries:
                 yield fmt % (
                     entry['project'],
-                    datetime.fromtimestamp(
+                    datetime.utcfromtimestamp(
                         entry['start_ts']).time().isoformat(),
-                    datetime.fromtimestamp(
+                    datetime.utcfromtimestamp(
                         entry['stop_ts']).time().isoformat(),
                     human_time(entry['elapsed'], 0))
-
-    def poll(self):
-
-        try:
-            self.update()
-        except AttributeError as e:
-            log.exception(e)
-
-
