@@ -5,11 +5,10 @@ from __future__ import absolute_import
 
 from functools import wraps
 
-
 _callbacks = set()
 
-def notify(fn):
 
+def notify(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
         result = fn(*args, **kwargs)
@@ -19,7 +18,7 @@ def notify(fn):
 
     return wrapper
 
+
 @notify
 def register(fn):
     _callbacks.add(fn)
-

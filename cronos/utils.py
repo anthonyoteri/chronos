@@ -21,13 +21,12 @@ def human_time(t, round_min=15):
     r = round_min * 60
 
     try:
-        t = (((int(t) + r/2) // r) * r)
+        t = (((int(t) + r / 2) // r) * r)
     except ZeroDivisionError:
         pass
 
     h, m = td_to_hm(timedelta(seconds=t))
     return "%02d:%02d" % (h, m)
-
 
 
 def timestamp(dt):

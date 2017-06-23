@@ -13,7 +13,6 @@ from sqlalchemy.sql import and_
 
 from cronos.utils import timestamp
 
-
 log = logging.getLogger(__name__)
 
 conn = None
@@ -37,9 +36,7 @@ def connect(config=None):
     return conn
 
 
-
 class ProjectService(object):
-
     def create(self, name):
         log.debug("create: %s", name)
 
@@ -56,7 +53,6 @@ class ProjectService(object):
 
 
 class RecordService(object):
-
     def start(self, project, ts):
         log.debug("start: project=%s timestamp=%s", project, ts)
 
@@ -69,7 +65,8 @@ class RecordService(object):
 
         with conn as tx:
             tx['record'].update(
-                dict(project=project, start=start_ts,
+                dict(project=project,
+                     start=start_ts,
                      elapsed=stop_ts - start_ts), ['project', 'start'])
 
     def list(self):
@@ -90,9 +87,8 @@ class RecordService(object):
             t = tx['record']
             try:
                 if min_ts and max_ts:
-                    rows = t.find(
-                        and_(t.table.columns.start >= min_ts,
-                             t.table.columns.start <= max_ts))
+                    rows = t.find(and_(t.table.columns.start >= min_ts,
+                                       t.table.columns.start <= max_ts))
                 elif min_ts:
                     rows = t.find(t.table.columns.start >= min_ts)
                 elif max_ts:
@@ -124,6 +120,7 @@ class RecordService(object):
 
             return data
 
+
 def insert_fake_records():
 
     projects = ('foo', 'bar', 'baz', 'boom', 'hannah', 'luke')
@@ -144,5 +141,3 @@ def insert_fake_records():
         project = random.choice(projects)
         record_service.start(project, start)
         record_service.stop(project, start, start + duration)
-
-

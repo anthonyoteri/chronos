@@ -28,10 +28,14 @@ def _log_level(level):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-l', '--loglevel', help='Logging level',
-                        default='info', choices=['debug', 'info', 'warning',
-                                                 'error'])
-    parser.add_argument('-c', '--config', help='Config file',
+    parser.add_argument('-l',
+                        '--loglevel',
+                        help='Logging level',
+                        default='info',
+                        choices=['debug', 'info', 'warning', 'error'])
+    parser.add_argument('-c',
+                        '--config',
+                        help='Config file',
                         default='~/.cronos/config.yml')
 
     options = parser.parse_args()
@@ -42,14 +46,15 @@ def main():
             config = yaml.load(config_file)
         log.debug(json.dumps(config, indent=2))
     except IOError as e:
-        log.error("Unable to read configuration file %s: %s", options.config, e)
+        log.error("Unable to read configuration file %s: %s", options.config,
+                  e)
         raise e
 
     connect(config)
 
     # TODO: Remove me
-#    from cronos.db import insert_fake_records
-#    insert_fake_records()
+    #    from cronos.db import insert_fake_records
+    #    insert_fake_records()
 
     app = Application()
     app.run()
@@ -60,4 +65,3 @@ if __name__ == "__main__":
         main()
     except KeyboardInterrupt:
         raise SystemExit(0)
-

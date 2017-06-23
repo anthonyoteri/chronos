@@ -16,8 +16,8 @@ log = logging.getLogger(__name__)
 class Application(object):
     """The application."""
 
-    COLS=24
-    ROWS=50
+    COLS = 24
+    ROWS = 50
 
     def __init__(self):
         log.debug("Creating the application")
@@ -31,13 +31,13 @@ class Application(object):
         self.content = ttk.Frame(self.window, padding=(3, 3, 12, 12))
         self.content.grid(row=0, column=0, sticky='news')
 
-        self.configure_grid_layout(self.content, rows=Application.ROWS,
+        self.configure_grid_layout(self.content,
+                                   rows=Application.ROWS,
                                    cols=Application.COLS)
 
         self.create_widgets()
 
-    def configure_grid_layout(self, parent, rows, cols, rowsize=1,
-                              colsize=1):
+    def configure_grid_layout(self, parent, rows, cols, rowsize=1, colsize=1):
         for row in xrange(rows):
             parent.rowconfigure(row, weight=1, minsize=rowsize)
         for col in xrange(cols):
@@ -46,12 +46,18 @@ class Application(object):
     def create_widgets(self):
 
         left = ttk.Notebook(self.content)
-        left.grid(row=0, column=0, rowspan=Application.ROWS,
-                  columnspan=15, sticky='news')
+        left.grid(row=0,
+                  column=0,
+                  rowspan=Application.ROWS,
+                  columnspan=15,
+                  sticky='news')
 
         right = ttk.Notebook(self.content)
-        right.grid(row=0, column=16, rowspan=Application.ROWS,
-                   columnspan=7, sticky='news')
+        right.grid(row=0,
+                   column=16,
+                   rowspan=Application.ROWS,
+                   columnspan=7,
+                   sticky='news')
 
         today = cronos.ui.Today(left)
         left.add(today, text='Day')
