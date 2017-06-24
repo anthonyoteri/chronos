@@ -1,3 +1,7 @@
+# Copyright (C) 2017, Anthony Oteri
+# All rights reserved
+
+"""User Interface modules."""
 
 from cronos.ui.clock import Clock
 from cronos.ui.ledger import Ledger

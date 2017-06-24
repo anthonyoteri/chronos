@@ -1,3 +1,29 @@
 database:
     url: "sqlite:///cronos.db"
 
+daily:
+    ignore_under: 2
+    round: 5
+
+weekly:
+    ignore: 2
+    round: 15
+
+monthly:
+    ignore: 2
+    round: 15
+
+ledger:
+    ignore: 2
+    round: 0
+
+projects:
+    - "R&D Research"
+    - "Education"
+    - "R&D Admin & Mgmt"
+    - "R&D IT & Eng. Tooling"
+    - "Release work"
+    - "R&D Support"
+    - "Product Improvements"
+    - "Feat-775"
+

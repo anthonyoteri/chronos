@@ -1,5 +1,6 @@
 # Copyright (C) 2017, Anthony Oteri.
 # All rights reserved.
+"""UI Element for controlling the list of projects."""
 
 from __future__ import absolute_import
 
@@ -15,101 +16,125 @@ log = logging.getLogger(__name__)
 
 
 class Project(ttk.Frame):
+    """UI widget for controlling the list of projects."""
 
+    # This needs to be fast, since it's used for determining the selected
+    # element.
     POLLING_INTERVAL = 250
 
     def __init__(self, master):
+        """Initialize the layout and internal state."""
         ttk.Frame.__init__(self, master)
-
-        for row in xrange(24):
-            self.rowconfigure(row, weight=1)
-        for col in xrange(40):
-            self.columnconfigure(col, weight=1)
 
         self.project_list = set()
         self.entry = tk.StringVar()
         self.selected = tk.StringVar()
 
-        self.create_widgets()
-
         self.project_service = ProjectService()
 
-        event.register(self.update)
+        self.configure_layout()
+        self.create_widgets()
+
         self.poll()
 
+        event.register(self.update)
+
+    def configure_layout(self):
+        """Configure the grid layout."""
+
+        for row in xrange(24):
+            self.rowconfigure(row, weight=1)
+
+        for col in xrange(50):
+            self.columnconfigure(col, weight=1)
+
     def create_widgets(self):
+        """Layout the UI elements on the screen."""
+
         self.box = tk.Listbox(self)
         self.box['relief'] = 'flat'
-        self.box.grid(row=0, column=0, rowspan=35, columnspan=24,
+        self.box.grid(row=0, column=0, rowspan=45, columnspan=24,
                       sticky='news')
 
         entry = ttk.Entry(self, textvariable=self.entry)
-        entry.grid(row=39, column=0, columnspan=16, sticky='sw')
+        entry.grid(row=49, column=0, columnspan=16, sticky='sw')
         entry.bind("<Return>", self.on_return)
 
         self.plus_button = ttk.Button(self, text='+', command=self.on_plus,
                                       width=1)
-        self.plus_button.grid(row=39, column=16, columnspan=4, sticky='se')
+        self.plus_button.grid(row=49, column=16, columnspan=4, sticky='se')
 
         self.minus_button = ttk.Button(self, text='-', command=self.on_minus,
                                        width=1)
-        self.minus_button.grid(row=39, column=20, columnspan=4, sticky='se')
+        self.minus_button.grid(row=49, column=20, columnspan=4, sticky='se')
 
     def on_return(self, event):
-        log.debug("on_return: %r", self)
+        """Add the entered text as a new project."""
         if self.entry.get():
             self.on_plus()
 
+    @event.notify
     def on_plus(self):
-        log.debug("on_plus: %r", self)
+        """Add the entered text as a new project."""
 
         new_project = self.entry.get()
+
+        if not new_project:
+            log.debug("Nothing was entered.")
+
         if new_project not in self.project_list:
-            log.debug("Creating new project %s", new_project)
+            log.info("Adding project %s", new_project)
             self.project_service.create(name=new_project)
             self.entry.set('')
-            self.save()
+        else:
+            log.info("Project %s already exists", new_project)
 
+    @event.notify
     def on_minus(self):
-        log.debug("on_minus: %r", self)
+        """Remove the currently selected project."""
 
-        target = self.selected.get()
-        if target in self.project_list:
-            prompt = tkMessageBox.askyesno(
+        def confirm_deletion(target):
+            # Prompt the user for confirmation before deleting a project.
+            confirmed = tkMessageBox.askyesno(
                 "Delete project",
                 "Are you sure you want to delete %s?" % target)
-            if not prompt:
-                log.debug("Cancelled project deletion for %s", target)
-                return
+            if not confirmed:
+                log.info("The delete operation for %s was cancelled by "
+                         "the user.", target)
+            return confirmed
+
+        target = self.selected.get()
+        log.debug("attempt to remove project %s", target)
+
+        if target in self.project_list and confirm_deletion(target):
             try:
                 self.project_service.delete(name=target)
-            except KeyError:
-                log.warning("Failed to remove project %s", target)
+            except KeyError as e:
+                log.warning("Failed to remove project %s: %s", target, e)
                 return
             else:
+                log.info("Project %s successfully deleted.", target)
+                # Clear the entry box and save the status.
                 self.selected.set('')
-                self.save()
 
+    @event.notify
     def on_selection(self, selection):
-        log.debug("on_selection: selection=%s %r", selection, self)
+        """Update the current selection and save the status."""
         self.selected.set(selection)
-        self.save()
 
     def load(self):
-        log.debug("load: %r", self)
+        """Update the internal data from the database."""
+
         self.project_list.clear()
         for row in self.project_service.list():
             try:
                 self.project_list.add(row['name'])
             except KeyError:
-                continue
-
-    @event.notify
-    def save(self):
-        log.debug("save: %r", self)
+                log.debug("error fetching project, "
+                          "database possibly not ready.")
 
     def update(self):
-        log.debug("update: %r", self)
+        """Refresh the UI elements."""
         self.load()
 
         self.box.delete(0, tk.END)
@@ -126,6 +151,8 @@ class Project(ttk.Frame):
             self.minus_button['state'] = tk.DISABLED
 
     def poll(self):
+        """Poll to check what is selected, and update the button state."""
+
         active = self.box.get(tk.ACTIVE)
         if self.selected.get() != active:
             self.on_selection(active)
@@ -136,14 +163,3 @@ class Project(ttk.Frame):
             self.plus_button['state'] = tk.DISABLED
 
         self.after(Project.POLLING_INTERVAL, self.poll)
-
-    def validate(self):
-        log.debug("validate: %s", self)
-        self.box.get(0, tk.END).index(self.entry.get())
-
-    def __repr__(self):
-        return "Project[entry=%s, selected=%s]" % (
-            self.entry.get(), self.selected.get()
-        )
-
-

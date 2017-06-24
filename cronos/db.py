@@ -1,5 +1,6 @@
 # Copyright (C) 2017, Anthony Oteri
 # All rights reserved
+"""Module for handling interaction with the database."""
 
 from __future__ import absolute_import
 
@@ -8,58 +9,87 @@ import dataset
 import logging
 import time
 from datetime import datetime, timedelta
+from dateutil import tz
 
 from sqlalchemy.sql import and_
 
-from cronos.utils import timestamp
+from cronos import config
+from cronos.utils import timestamp, local_time, utc_time
 
 log = logging.getLogger(__name__)
 
 conn = None
 
 
-def connect(config=None):
-    log.debug("connect")
+def connect():
+    """Initialize the connection with the database.
 
-    if config:
-        db_url = config.get('database', {}).get('url', 'sqlite://')
-    else:
-        db_url = 'sqlite://'
-
-    log.debug("found database url %s", db_url)
+    :param dict config: The current configuration.
+    """
+    url = config.get('database', {}).get('url', 'sqlite://')
 
     global conn
-    conn = dataset.connect(db_url)
-
-    log.debug("db is %r", conn)
-
-    return conn
+    conn = dataset.connect(url)
 
 
 class ProjectService(object):
+    """Service instance for maintaining the list of projects."""
+
     def create(self, name):
+        """Create a new project with the given name."""
+
         log.debug("create: %s", name)
 
         with conn as tx:
             tx['project'].insert({'name': name})
 
     def list(self):
+        """Query for a list of all projects.
+
+        The return value will be a list of `collections.ordereddict`
+        objects with the keys "id", and "name".
+
+        :return list<dict>: A list of rows from the database.
+        """
+
         with conn as tx:
             return tx['project'].all()
 
     def delete(self, **filter):
+        """Delete the project by either id or name.
+
+        :param filter: keyword arguments either 'id' or 'name' to narow the
+                       list of projects to delete.
+        """
+
         with conn as tx:
             tx['project'].delete(**filter)
 
 
 class RecordService(object):
+    """Service instance for maintaining the actual time records."""
+
     def start(self, project, ts):
+        """Start a new time record.
+
+        :param str project: The name of the project.
+        :param int ts: The current epoch seconds (UTC).
+        """
         log.debug("start: project=%s timestamp=%s", project, ts)
 
         with conn as tx:
             tx['record'].insert(dict(project=project, start=ts, elapsed=0))
 
     def stop(self, project, start_ts, stop_ts):
+        """Stop the current time record.
+
+        :param str project: The name of the project.
+        :param int start_ts: The epoch seconds (UTC) when the record was
+                             started.
+        :param int stop_ts: The epoch seconds (UTC) when the record is to be
+                            stopped.
+        """
+
         log.debug("stop: project=%s start_ts=%s stop_ts=%s", project, start_ts,
                   stop_ts)
 
@@ -70,15 +100,47 @@ class RecordService(object):
                      elapsed=stop_ts - start_ts), ['project', 'start'])
 
     def list(self):
+        """Qurey for a list of all records.
+
+        The return value will be a list of `collections.ordereddict` objects,
+        each containing the following fields: id, start, elapsed.
+
+        :return list<dict>: The result set.
+        """
+
         with conn as tx:
             return tx['record'].all()
 
     def ongoing(self):
+        """Query for the last ongoing recording.
+
+        A recording is considered ongoing if the `elapsed` field is set to
+        0 seconds.
+
+        :return collections.ordereddict: The last started ongoing row or
+                                         `None` if there is no ongoing
+                                         records.
+        """
         with conn as tx:
             last = tx['record'].find_one(elapsed=0, order_by='-start')
             return last
 
     def by_day(self, start_date=None, stop_date=None):
+        """Query for records grouped by day.
+
+        The result will be a `collections.ordereddict` with one entry per day,
+        each day will contain a list of records which were started on that
+        day.  The key will be in ISO8601 format for the date, e.g.
+        'YYYY-MM-DD'.
+
+        :param datetime start_date: An optional starting date (inclusive)
+        :param datetime stop_date: An optional stopping date (inclusive)
+        :return collections.ordereddict.
+        """
+
+        start_date = utc_time(start_date) if start_date else None
+        stop_date = utc_time(stop_date) if stop_date else None
+
         with conn as tx:
             min_ts = timestamp(start_date) if start_date is not None else 0
             max_ts = timestamp(stop_date) if stop_date is not None else 0
@@ -101,15 +163,10 @@ class RecordService(object):
 
             for row in rows:
                 try:
-                    ts = datetime.utcfromtimestamp(float(row['start']))
+                    ts = local_time(datetime.utcfromtimestamp(float(row[
+                        'start'])))
                 except TypeError:
                     continue
-                now = int(time.time())
-
-                if stop_date:
-                    if ts > stop_date:
-                        raise Exception("Bad timestamp %s > %s" % (
-                            ts.isoformat(), stop_date.isoformat()))
 
                 data[ts.date().isoformat()].append({
                     'project': row['project'],
@@ -119,25 +176,3 @@ class RecordService(object):
                 })
 
             return data
-
-
-def insert_fake_records():
-
-    projects = ('foo', 'bar', 'baz', 'boom', 'hannah', 'luke')
-    project_service = ProjectService()
-
-    for project in projects:
-        project_service.create(name=project)
-
-    min_ts = timestamp(datetime.now()) - timedelta(weeks=12).total_seconds()
-    max_ts = timestamp(datetime.now()) + timedelta(weeks=12).total_seconds()
-
-    record_service = RecordService()
-
-    import random
-    for _ in xrange(2000):
-        start = random.randint(min_ts, max_ts)
-        duration = random.randint(1, 3 * 60 * 60)
-        project = random.choice(projects)
-        record_service.start(project, start)
-        record_service.stop(project, start, start + duration)

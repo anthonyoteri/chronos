@@ -1,5 +1,6 @@
 # Copyright (C) 2017, Anthony Oteri
 # All rights reserved.
+"""Main script for cronos timekeeper."""
 
 from __future__ import absolute_import
 
@@ -9,6 +10,7 @@ import logging
 
 import yaml
 
+from cronos import config
 import cronos.logging
 
 from cronos.application import Application
@@ -27,6 +29,8 @@ def _log_level(level):
 
 
 def main():
+    """"Main entrypoint."""
+
     parser = argparse.ArgumentParser()
     parser.add_argument('-l',
                         '--loglevel',
@@ -36,30 +40,18 @@ def main():
     parser.add_argument('-c',
                         '--config',
                         help='Config file',
-                        default='~/.cronos/config.yml')
+                        default='config.yml')
 
     options = parser.parse_args()
     cronos.logging.init(level=_log_level(options.loglevel))
 
-    try:
-        with open(options.config, 'r') as config_file:
-            config = yaml.load(config_file)
-        log.debug(json.dumps(config, indent=2))
-    except IOError as e:
-        log.error("Unable to read configuration file %s: %s", options.config,
-                  e)
-        raise e
-
-    connect(config)
-
-    # TODO: Remove me
-    #    from cronos.db import insert_fake_records
-    #    insert_fake_records()
+    config.load(options.config)
+    connect()
 
     app = Application()
     app.run()
 
-
+# ----------------------------------------------------------------------------
 if __name__ == "__main__":
     try:
         main()
