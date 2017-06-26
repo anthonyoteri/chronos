@@ -33,3 +33,16 @@ def get(key, *default):
     """Get a value from the configuration."""
 
     return config.get(key, *default)
+
+
+def database(key, *default):
+    """Get a value from the database config."""
+    db_config = get('database', {})
+    return db_config.get(key, *default)
+
+
+def ui(key, *default):
+    """Get a value from the UI config."""
+    ui_config = get('ui', {})
+    return ui_config.get(key, *default)
+

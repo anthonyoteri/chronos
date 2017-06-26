@@ -8,7 +8,7 @@ import logging
 import Tkinter as tk
 import ttk
 
-from cronos import __NAME__, __VERSION__, event
+from cronos import __NAME__, __VERSION__, event, config
 import cronos.ui
 
 log = logging.getLogger(__name__)
@@ -23,6 +23,14 @@ class Application(object):
 
         self.window = tk.Tk()
         self.window.title(self.window_title)
+        log.info("Available themes %s", ", ".join(ttk.Style().theme_names()))
+
+        theme_name = config.ui('theme')
+        if theme_name:
+            try:
+                ttk.Style().theme_use(theme_name)
+            except Exception:
+                log.error("No such theme %s", theme_name)
 
         self.window.geometry('960x500')
         self.configure_grid_layout(self.window, rows=1, cols=1)
