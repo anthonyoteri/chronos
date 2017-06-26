@@ -89,8 +89,12 @@ class Report(Console):
         # Since the data is stored as a list of entries per day, aggregate
         # the total per-project time in a single timesheet.
         timesheet = collections.defaultdict(int)
+        running_project = None
         for entries in self.data.values():
             for entry in entries:
+                if not entry['elapsed']:
+                    entry['elapsed'] = int(time.time()) - entry['start_ts']
+                    running_project = entry['project']
                 timesheet[entry['project']] += entry['elapsed']
 
         # Iterate through the set of projects and yield one line per project
@@ -98,7 +102,13 @@ class Report(Console):
         # function. (Defaults to 15 minutes)
         for project in sorted(timesheet.keys()):
             if timesheet[project] >= 120:
-                yield fmt % (project, human_time(timesheet[project]))
+
+                marker = ''
+                # If the active project is running, mark it with an *
+                if project == running_project:
+                    marker = '*'
+
+                yield fmt % (project, human_time(timesheet[project]) + marker)
 
         # Calculate and report the total time in the timesheet.
         total = sum(timesheet.values())
