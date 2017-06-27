@@ -53,18 +53,25 @@ class Project(ttk.Frame):
 
         self.box = tk.Listbox(self)
         self.box['relief'] = 'flat'
-        self.box.grid(row=0, column=0, rowspan=45, columnspan=24,
+        self.box.grid(row=0,
+                      column=0,
+                      rowspan=45,
+                      columnspan=24,
                       sticky='news')
 
         entry = ttk.Entry(self, textvariable=self.entry)
         entry.grid(row=49, column=0, columnspan=16, sticky='sw')
         entry.bind("<Return>", self.on_return)
 
-        self.plus_button = ttk.Button(self, text='+', command=self.on_plus,
+        self.plus_button = ttk.Button(self,
+                                      text='+',
+                                      command=self.on_plus,
                                       width=1)
         self.plus_button.grid(row=49, column=16, columnspan=4, sticky='se')
 
-        self.minus_button = ttk.Button(self, text='-', command=self.on_minus,
+        self.minus_button = ttk.Button(self,
+                                       text='-',
+                                       command=self.on_minus,
                                        width=1)
         self.minus_button.grid(row=49, column=20, columnspan=4, sticky='se')
 

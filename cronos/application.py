@@ -71,8 +71,8 @@ class Application(object):
     def configure_left_notebook(self, notebook):
         """Configure the UI tabs on the left notebook."""
 
-        today = cronos.ui.Today(notebook)
-        notebook.add(today, text='Day')
+        day = cronos.ui.Day(notebook)
+        notebook.add(day, text='Day')
 
         week = cronos.ui.Week(notebook)
         notebook.add(week, text='Week')
@@ -80,8 +80,8 @@ class Application(object):
         month = cronos.ui.Month(notebook)
         notebook.add(month, text='Month')
 
-        ledger = cronos.ui.Ledger(notebook)
-        notebook.add(ledger, text="Ledger")
+        custom = cronos.ui.CustomRange(notebook)
+        notebook.add(custom, text='Custom')
 
         console_log = cronos.ui.Log(notebook)
         notebook.add(console_log, text="Log")
