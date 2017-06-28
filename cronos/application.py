@@ -72,19 +72,19 @@ class Application(object):
         """Configure the UI tabs on the left notebook."""
 
         day = cronos.ui.Day(notebook)
-        notebook.add(day, text='Day')
+        notebook.add(day, text='Day', sticky='news')
 
         week = cronos.ui.Week(notebook)
-        notebook.add(week, text='Week')
+        notebook.add(week, text='Week', sticky='news')
 
         month = cronos.ui.Month(notebook)
-        notebook.add(month, text='Month')
+        notebook.add(month, text='Month', sticky='news')
 
         custom = cronos.ui.CustomRange(notebook)
-        notebook.add(custom, text='Custom')
+        notebook.add(custom, text='Custom', sticky='news')
 
         console_log = cronos.ui.Log(notebook)
-        notebook.add(console_log, text="Log")
+        notebook.add(console_log, text="Log", sticky='news')
 
     def configure_right_notebook(self, notebook):
         """Configure the UI tabs on the right notebook."""

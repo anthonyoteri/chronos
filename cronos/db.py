@@ -125,7 +125,7 @@ class RecordService(object):
             last = tx['record'].find_one(elapsed=0, order_by='-start')
             return last
 
-    def by_day(self, start_date=None, stop_date=None):
+    def by_day(self, start_date=None, stop_date=None, filter_ = None):
         """Query for records grouped by day.
 
         The result will be a `collections.ordereddict` with one entry per day,
@@ -135,6 +135,7 @@ class RecordService(object):
 
         :param datetime start_date: An optional starting date (inclusive)
         :param datetime stop_date: An optional stopping date (inclusive)
+        :param str filter_: filter string for projects.
         :return collections.ordereddict.
         """
 
@@ -148,7 +149,12 @@ class RecordService(object):
             data = collections.defaultdict(list)
             t = tx['record']
             try:
-                if min_ts and max_ts:
+                if filter_ and min_ts and max_ts:
+                    rows = t.find(
+                        and_(t.table.columns.start >= min_ts,
+                             t.table.columns.start <= max_ts,
+                             t.table.columns.project.ilike(filter_ + '%')))
+                elif min_ts and max_ts:
                     rows = t.find(and_(t.table.columns.start >= min_ts,
                                        t.table.columns.start <= max_ts))
                 elif min_ts:

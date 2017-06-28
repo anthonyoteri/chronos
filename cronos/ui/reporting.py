@@ -29,6 +29,8 @@ class Report(ttk.Frame):
         ttk.Frame.__init__(self, master)
 
         self.use_summary = tk.IntVar()
+        self.filter_ = tk.StringVar()
+
         self.text = ''
 
         # The reference date from which the report will be based.
@@ -50,34 +52,38 @@ class Report(ttk.Frame):
         for row in xrange(50):
             self.rowconfigure(row, weight=1)
 
-        for col in xrange(24):
+        for col in xrange(12):
             self.rowconfigure(col, weight=1)
 
     def create_widgets(self):
         """Layout the elements on screen."""
 
+        ttk.Label(self, text="Filter").grid(row=0, column=9, sticky='e')
+        filter_ = ttk.Entry(self, textvariable=self.filter_)
+        filter_.grid(row=0, column=10, columnspan=2, sticky='news')
+
         self.box = tk.Text(self)
-        self.box.grid(row=0,
+        self.box.grid(row=1,
                       column=0,
                       rowspan=45,
-                      columnspan=24,
+                      columnspan=12,
                       sticky='news')
 
-        self.ledger_button = ttk.Checkbutton(self,
-                                             text='Summary',
-                                             variable=self.use_summary)
+        self.summary_button = ttk.Checkbutton(self,
+                                              text='Summary',
+                                              variable=self.use_summary)
 
-        self.ledger_button.invoke()
-        self.ledger_button.grid(row=50, column=0, sticky='sw')
+        self.summary_button.invoke()
+        self.summary_button.grid(row=49, column=0, sticky='news')
 
         self.back_button = ttk.Button(self, text="<", command=self.back)
-        self.back_button.grid(row=50, column=16, columnspan=3, sticky='se')
+        self.back_button.grid(row=49, column=9, sticky='news')
 
         self.today_button = ttk.Button(self, text="Today", command=self.today)
-        self.today_button.grid(row=50, column=19, columnspan=3, sticky='se')
+        self.today_button.grid(row=49, column=10, sticky='news')
 
         self.forward_button = ttk.Button(self, text=">", command=self.forward)
-        self.forward_button.grid(row=50, column=22, columnspan=3, sticky='se')
+        self.forward_button.grid(row=49, column=11, sticky='news')
 
     def back(self):
         """Move the reference date back by `self.delta` units."""
@@ -144,9 +150,16 @@ class Day(Report):
     def load(self):
         """Refresh the internal data from the database."""
 
+        filter_ = self.filter_.get()
+
         try:
-            self.data = self.record_service.by_day(start_date=self.start(),
-                                                   stop_date=self.stop())
+            if filter_:
+                self.data = self.record_service.by_day(start_date=self.start(),
+                                                       stop_date=self.stop(),
+                                                       filter_=filter_)
+            else:
+                self.data = self.record_service.by_day(start_date=self.start(),
+                                                       stop_date=self.stop())
         except ValueError:
             self.data = {}
 
@@ -302,15 +315,16 @@ class CustomRange(Day):
         self.today_button.grid_forget()
         self.forward_button.grid_forget()
 
-        ttk.Label(self, text="Start").grid(row=49, column=16, sticky='se')
-        ttk.Entry(self, textvariable=self.start_entry).grid(row=49,
-                                                            column=17,
-                                                            columnspan=6,
-                                                            sticky='se')
-        ttk.Label(self, text="Stop").grid(row=50, column=16, sticky='se')
-        ttk.Entry(self, textvariable=self.stop_entry).grid(row=50,
-                                                           column=17,
-                                                           columnspan=6,
+        ttk.Label(self, text="Start").grid(row=48, column=9, sticky='e')
+        ttk.Entry(self, textvariable=self.start_entry).grid(row=48,
+                                                            column=10,
+                                                            columnspan=2,
+                                                            sticky='news')
+
+        ttk.Label(self, text="Stop").grid(row=49, column=9, sticky='e')
+        ttk.Entry(self, textvariable=self.stop_entry).grid(row=49,
+                                                           column=10,
+                                                           columnspan=2,
                                                            sticky='se')
 
     def start(self):
