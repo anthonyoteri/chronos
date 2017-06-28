@@ -9,8 +9,8 @@ import time
 import Tkinter as tk
 import ttk
 
-from cronos import event
-from cronos.logging import fetch
+from chronos import event
+from chronos.logging import fetch
 
 log = logging.getLogger(__name__)
 

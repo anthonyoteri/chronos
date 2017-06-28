@@ -12,8 +12,8 @@ import ttk
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta, MO, SU
 
-from cronos import event, utils
-from cronos.db import RecordService
+from chronos import event, utils
+from chronos.db import RecordService
 
 log = logging.getLogger(__name__)
 

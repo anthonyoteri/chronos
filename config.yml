@@ -1,8 +1,0 @@
-database:
-    url: "sqlite:///cronos.db"
-    records:
-        ignore_elapsed_less_than: 120
-ui:
-    theme: aqua 
-    round_times_to_min: 15
-    round_up: true

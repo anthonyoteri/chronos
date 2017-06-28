@@ -9,8 +9,8 @@ import Tkinter as tk
 import ttk
 import tkMessageBox
 
-from cronos import event
-from cronos.db import ProjectService
+from chronos import event
+from chronos.db import ProjectService
 
 log = logging.getLogger(__name__)
 

@@ -10,9 +10,9 @@ import Tkinter as tk
 import ttk
 from datetime import datetime
 
-from cronos import event
-from cronos.db import ProjectService, RecordService
-from cronos.utils import human_time
+from chronos import event
+from chronos.db import ProjectService, RecordService
+from chronos.utils import human_time
 
 log = logging.getLogger(__name__)
 

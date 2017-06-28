@@ -1,6 +1,6 @@
 # Copyright (C) 2017, Anthony Oteri
 # All rights reserved.
-"""Main script for cronos timekeeper."""
+"""Main script for chronos timekeeper."""
 
 from __future__ import absolute_import
 
@@ -10,11 +10,11 @@ import logging
 
 import yaml
 
-from cronos import config
-import cronos.logging
+from chronos import config
+import chronos.logging
 
-from cronos.application import Application
-from cronos.db import connect
+from chronos.application import Application
+from chronos.db import connect
 
 log = logging.getLogger('chronos')
 
@@ -40,10 +40,13 @@ def main():
     parser.add_argument('-c',
                         '--config',
                         help='Config file',
-                        default='config.yml')
+                        default='~/.chronos/config.yml')
 
     options = parser.parse_args()
-    cronos.logging.init(level=_log_level(options.loglevel))
+    chronos.logging.init(level=_log_level(options.loglevel))
+
+    import os
+    log.error("Path is %s", os.path.dirname(os.path.realpath(__file__)))
 
     config.load(options.config)
     connect()

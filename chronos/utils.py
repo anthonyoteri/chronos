@@ -54,6 +54,7 @@ def utc_time(dt):
     """Return a date or datetime in utc."""
     return dt.replace(tzinfo=tz.tzlocal()).astimezone(tz.tzutc())
 
+
 def midnight(dt):
     """Return a datetime representing midnight of the given datetime.
 
@@ -66,6 +67,7 @@ def midnight(dt):
 
     return datetime.combine(dt, datetime.min.time())
 
+
 def last_second(dt):
     """Return a datetime representing the final second of the day."""
 
@@ -73,35 +75,39 @@ def last_second(dt):
     midnight_tomorrow = midnight(midnight_today + timedelta(days=1))
     return midnight_tomorrow - timedelta(seconds=1)
 
+
 def start_of_day(dt):
     """Return the first second in the day."""
     return midnight(dt)
+
 
 def end_of_day(dt):
     """Return the last second in the day."""
     return last_second(dt)
 
+
 def start_of_month(dt):
     """Return the first second of the first day of the month."""
     return midnight(dt.replace(day=1))
 
+
 def end_of_month(dt):
     """Return the last second of the final day of the month."""
     first_of_this_month = start_of_month(dt)
-    first_of_next_month = start_of_month(
-        first_of_this_month + relativedelta(months=1))
+    first_of_next_month = start_of_month(first_of_this_month + relativedelta(
+        months=1))
     last_of_this_month = first_of_next_month - timedelta(days=1)
 
     return last_second(last_of_this_month)
+
 
 def start_of_week(dt):
     """Return the first second of the Monday of the given week."""
     monday = dt - relativedelta(weekday=MO(-1))
     return midnight(monday)
 
+
 def end_of_week(dt):
     """Return the last second of the Sunday of the given week."""
     sunday = dt + relativedelta(weekday=SU)
     return last_second(sunday)
-
-

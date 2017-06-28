@@ -6,6 +6,7 @@ from __future__ import absolute_import
 
 import logging
 import json
+import os
 import yaml
 
 log = logging.getLogger(__name__)
@@ -13,11 +14,31 @@ log = logging.getLogger(__name__)
 config = {}
 
 
+def create_default_config(filename):
+    """Create a default config file."""
+    base_dir = os.path.dirname(filename)
+
+    default = {'database': {'url': 'sqlite:////%s/chronos.db' % base_dir, }}
+
+    try:
+        os.makedirs(base_dir)
+    except OSError:
+        pass
+
+    if not os.path.exists(os.path.expanduser(filename)):
+        with open(filename, "w") as config_file:
+            yaml.dump(default, config_file, default_flow_style=False)
+
+
 def load(filename, dump=None):
     """Load the configuration from the given filename.
 
     If `dump` is truthful, dump the config to the logfile.
     """
+
+    filename = os.path.expanduser(filename)
+    create_default_config(filename)
+
     global config
     try:
         with open(filename, 'r') as config_file:
@@ -45,4 +66,3 @@ def ui(key, *default):
     """Get a value from the UI config."""
     ui_config = get('ui', {})
     return ui_config.get(key, *default)
-

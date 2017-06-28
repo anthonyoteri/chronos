@@ -8,8 +8,8 @@ import logging
 import Tkinter as tk
 import ttk
 
-from cronos import __NAME__, __VERSION__, event, config
-import cronos.ui
+from chronos import __NAME__, __VERSION__, event, config
+import chronos.ui
 
 log = logging.getLogger(__name__)
 
@@ -71,28 +71,28 @@ class Application(object):
     def configure_left_notebook(self, notebook):
         """Configure the UI tabs on the left notebook."""
 
-        day = cronos.ui.Day(notebook)
+        day = chronos.ui.Day(notebook)
         notebook.add(day, text='Day', sticky='news')
 
-        week = cronos.ui.Week(notebook)
+        week = chronos.ui.Week(notebook)
         notebook.add(week, text='Week', sticky='news')
 
-        month = cronos.ui.Month(notebook)
+        month = chronos.ui.Month(notebook)
         notebook.add(month, text='Month', sticky='news')
 
-        custom = cronos.ui.CustomRange(notebook)
+        custom = chronos.ui.CustomRange(notebook)
         notebook.add(custom, text='Custom', sticky='news')
 
-        console_log = cronos.ui.Log(notebook)
+        console_log = chronos.ui.Log(notebook)
         notebook.add(console_log, text="Log", sticky='news')
 
     def configure_right_notebook(self, notebook):
         """Configure the UI tabs on the right notebook."""
 
-        time_clock = cronos.ui.Clock(notebook)
+        time_clock = chronos.ui.Clock(notebook)
         notebook.add(time_clock, text="Time")
 
-        project = cronos.ui.Project(notebook)
+        project = chronos.ui.Project(notebook)
         notebook.add(project, text="Project")
 
     def run(self):

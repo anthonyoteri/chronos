@@ -13,8 +13,8 @@ from dateutil import tz
 
 from sqlalchemy.sql import and_
 
-from cronos import config
-from cronos.utils import timestamp, local_time, utc_time
+from chronos import config
+from chronos.utils import timestamp, local_time, utc_time
 
 log = logging.getLogger(__name__)
 
@@ -125,7 +125,7 @@ class RecordService(object):
             last = tx['record'].find_one(elapsed=0, order_by='-start')
             return last
 
-    def by_day(self, start_date=None, stop_date=None, filter_ = None):
+    def by_day(self, start_date=None, stop_date=None, filter_=None):
         """Query for records grouped by day.
 
         The result will be a `collections.ordereddict` with one entry per day,
@@ -150,10 +150,10 @@ class RecordService(object):
             t = tx['record']
             try:
                 if filter_ and min_ts and max_ts:
-                    rows = t.find(
-                        and_(t.table.columns.start >= min_ts,
-                             t.table.columns.start <= max_ts,
-                             t.table.columns.project.ilike(filter_ + '%')))
+                    rows = t.find(and_(t.table.columns.start >= min_ts,
+                                       t.table.columns.start <= max_ts,
+                                       t.table.columns.project.ilike(filter_ +
+                                                                     '%')))
                 elif min_ts and max_ts:
                     rows = t.find(and_(t.table.columns.start >= min_ts,
                                        t.table.columns.start <= max_ts))

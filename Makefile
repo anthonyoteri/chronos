@@ -1,15 +1,7 @@
-PYTHON ?= $(shell which python)
+all: dist/Chronos.app
 
-all: dist/Cronos.app
-
-dist/Cronos.app:
-	$(PYTHON) setup.py py2app
-
-develop:
-	$(PYTHON) setup.py py2app -A
-
-test:
-	$(PYTHON) setup.py test
+dist/Chronos.app: env
+	env/bin/python setup.py py2app
 
 check:
 	flake8 timekeeper
@@ -20,7 +12,7 @@ env:
 	touch env
 
 run: env
-	env/bin/python -m cronos.main --loglevel debug --config config.yml
+	env/bin/python script.py --loglevel debug
 
 clean:
 	rm -rf env build dist *.egg-info .eggs
