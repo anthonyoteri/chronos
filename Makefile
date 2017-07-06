@@ -6,6 +6,9 @@ dist/Chronos.app: env
 check:
 	flake8 chronos 
 
+format:
+	find chronos -name '*.py' -print | xargs yapf -i
+
 env:
 	virtualenv env
 	env/bin/python setup.py develop
