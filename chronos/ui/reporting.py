@@ -166,8 +166,8 @@ class Day(Report):
     def _date_header(self):
         """Generate the lines for the date header."""
         try:
-            min_day = self.start().date().isoformat()
-            max_day = self.stop().date().isoformat()
+            min_day = self.start().date()
+            max_day = self.stop().date()
         except ValueError:
             yield "No Data for %s" % str(self.reference)
             return
@@ -175,9 +175,9 @@ class Day(Report):
         # Depending on if the report covers a single day or a range of dates
         # construct the date header line accordingly.
         if min_day == max_day:
-            yield min_day
+            yield min_day.strftime("%A, %B %d, %Y")
         else:
-            yield "%s - %s" % (min_day, max_day)
+            yield "%s - %s" % (min_day.isoformat(), max_day.isoformat())
 
     def _column_headings(self):
         """Generate the column headings depending on the mode."""
@@ -236,8 +236,8 @@ class Day(Report):
             yield self.fmt_summary % ('TOTAL', utils.human_time(total))
         else:
             yield self.fmt_ledger % ('=====', '', '', '', '=====')
-            yield self.fmt_ledger % ('TOTAL', '', '', '', utils.human_time(
-                total, 0))
+            yield self.fmt_ledger % ('TOTAL', '', '', '',
+                                     utils.human_time(total, 0))
 
     def lines(self):
         """Generate the report contents."""

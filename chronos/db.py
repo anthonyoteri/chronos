@@ -174,7 +174,7 @@ class RecordService(object):
                 except TypeError:
                     continue
 
-                data[ts.date().isoformat()].append({
+                data[ts.date()].append({
                     'project': row['project'],
                     'start_ts': row['start'],
                     'stop_ts': row['start'] + row['elapsed'],
