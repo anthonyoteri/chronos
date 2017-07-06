@@ -9,10 +9,10 @@ import logging
 import time
 import Tkinter as tk
 import ttk
-from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta, MO, SU
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
-from chronos import event, utils
+from chronos import utils
 from chronos.db import RecordService
 
 log = logging.getLogger(__name__)
@@ -200,7 +200,6 @@ class Day(Report):
                 for entry in entries:
                     if not entry['elapsed']:
                         entry['elapsed'] = int(time.time()) - entry['start_ts']
-                        running_project = entry['project']
                     timesheet[entry['project']] += entry['elapsed']
 
             for project, elapsed in sorted(timesheet.iteritems()):

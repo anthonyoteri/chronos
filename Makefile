@@ -4,7 +4,7 @@ dist/Chronos.app: env
 	env/bin/python setup.py py2app
 
 check:
-	flake8 timekeeper
+	flake8 chronos 
 
 env:
 	virtualenv env

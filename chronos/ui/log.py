@@ -5,7 +5,6 @@
 from __future__ import absolute_import
 
 import logging
-import time
 import Tkinter as tk
 import ttk
 

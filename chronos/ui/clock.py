@@ -150,8 +150,6 @@ class Clock(ttk.Frame):
 
     def poll(self):
         """Update the displayed times so that the fields work in real-time."""
-        now = int(time.time())
-
         if self.running:
             elapsed = time.time() - self.active_project_start_ts
             self.elapsed_time.set(human_time(elapsed, 0))

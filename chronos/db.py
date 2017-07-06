@@ -7,9 +7,7 @@ from __future__ import absolute_import
 import collections
 import dataset
 import logging
-import time
-from datetime import datetime, timedelta
-from dateutil import tz
+from datetime import datetime
 
 from sqlalchemy.sql import and_
 
