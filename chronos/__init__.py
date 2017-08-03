@@ -2,5 +2,5 @@
 # All rights reserved.
 
 __NAME__ = 'Chronos Timekeeper'
-__VERSION__ = '2017.7-U1'
+__VERSION__ = '2017.8'
 __AUTHOR__ = 'Anthony Oteri'

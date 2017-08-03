@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 class Clock(ttk.Frame):
     """Frame which allows the user to start/stop the timeclock."""
 
-    POLLING_INTERVAL_MS = 250
+    POLLING_INTERVAL_MS = 1000
 
     def __init__(self, master):
         """Construct the frame and initialize the internal state."""

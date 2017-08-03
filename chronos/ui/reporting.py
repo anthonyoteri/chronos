@@ -21,7 +21,7 @@ log = logging.getLogger(__name__)
 class Report(ttk.Frame):
     """Generic navigable report."""
 
-    POLLING_INTERVAL_MS = 250
+    POLLING_INTERVAL_MS = 30 * 1000
 
     def __init__(self, master):
         """Initialilize the state of the report."""
@@ -61,6 +61,7 @@ class Report(ttk.Frame):
         ttk.Label(self, text="Filter").grid(row=0, column=9, sticky='e')
         filter_ = ttk.Entry(self, textvariable=self.filter_)
         filter_.grid(row=0, column=10, columnspan=2, sticky='news')
+        self.filter_.trace("w", self.on_key)
 
         self.box = tk.Text(self)
         self.box.grid(row=1,
@@ -75,6 +76,7 @@ class Report(ttk.Frame):
 
         self.summary_button.invoke()
         self.summary_button.grid(row=49, column=0, sticky='news')
+        self.use_summary.trace("w", self.on_key)
 
         self.back_button = ttk.Button(self, text="<", command=self.back)
         self.back_button.grid(row=49, column=9, sticky='news')
@@ -88,14 +90,17 @@ class Report(ttk.Frame):
     def back(self):
         """Move the reference date back by `self.delta` units."""
         self.reference -= self.delta
+        self.update()
 
     def today(self):
         """Reset the reference date back to today."""
         self.reference = datetime.today().date()
+        self.update()
 
     def forward(self):
         """Move the reference date forward by `self.delta` units."""
         self.reference += self.delta
+        self.update()
 
     def lines(self):
         """Generate the lines to be displayed in the box."""
@@ -122,16 +127,18 @@ class Report(ttk.Frame):
 
         self.box['state'] = tk.DISABLED
 
-    def poll(self):
-        """Repeatedly call the `self.poll()` method."""
-        self.text = str(self.reference)
-        self.update()
-
         if self.reference >= datetime.today().date():
             self.forward_button['state'] = tk.DISABLED
         else:
             self.forward_button['state'] = tk.NORMAL
 
+    def on_key(self, *args):
+        self.text = str(self.reference)
+        self.update()
+
+    def poll(self):
+        """Repeatedly call the `self.poll()` method."""
+        self.on_key()
         self.after(self.POLLING_INTERVAL_MS, self.poll)
 
 
@@ -154,6 +161,11 @@ class Day(Report):
 
         try:
             if filter_:
+
+                # Use * for wildcards in syntax.
+                filter_ = filter_.replace("%", "\%")
+                filter_ = filter_.replace("*", "%")
+
                 self.data = self.record_service.by_day(start_date=self.start(),
                                                        stop_date=self.stop(),
                                                        filter_=filter_)
@@ -250,10 +262,14 @@ class Day(Report):
         for (project, start_date, start_time, stop,
              elapsed) in self._generate_timesheet():
             if self.use_summary.get():
-                yield self.fmt_summary % (project, utils.human_time(elapsed))
+                display_time = utils.human_time(elapsed)
+                if display_time != "00:00":
+                    yield self.fmt_summary % (project, display_time)
             else:
-                yield self.fmt_ledger % (project, start_date, start_time, stop,
-                                         utils.human_time(elapsed, 0))
+                display_time = utils.human_time(elapsed, 0)
+                if display_time != "00:00":
+                    yield self.fmt_ledger % (project, start_date, start_time,
+                                             stop, display_time)
 
         for line in self._footer():
             yield line
@@ -315,16 +331,14 @@ class CustomRange(Day):
         self.forward_button.grid_forget()
 
         ttk.Label(self, text="Start").grid(row=48, column=9, sticky='e')
-        ttk.Entry(self, textvariable=self.start_entry).grid(row=48,
-                                                            column=10,
-                                                            columnspan=2,
-                                                            sticky='news')
+        start = ttk.Entry(self, textvariable=self.start_entry)
+        start.grid(row=48, column=10, columnspan=2, sticky='news')
+        self.start_entry.trace("w", self.on_key)
 
         ttk.Label(self, text="Stop").grid(row=49, column=9, sticky='e')
-        ttk.Entry(self, textvariable=self.stop_entry).grid(row=49,
-                                                           column=10,
-                                                           columnspan=2,
-                                                           sticky='se')
+        stop = ttk.Entry(self, textvariable=self.stop_entry)
+        stop.grid(row=49, column=10, columnspan=2, sticky='se')
+        self.stop_entry.trace("w", self.on_key)
 
     def start(self):
         return utils.start_of_day(datetime.strptime(self.start_entry.get(),
